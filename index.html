@@ -20,15 +20,21 @@
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #2c3e50; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s ease; }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #4a6741; }
-        .btn { background: linear-gradient(135deg, #4a6741 0%, #2c3e50 100%); color: white; padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; margin: 5px; }
+        .btn { background: linear-gradient(135deg, #4a6741 0%, #2c3e50 100%); color: white; padding: 12px 30px; border: none; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; margin: 5px; text-decoration: none; display: inline-block; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .btn-secondary { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
         .btn-danger { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+        .btn-success { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); }
+        .btn-info { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
         .btn-small { padding: 5px 15px; font-size: 0.8rem; }
         .grid { display: grid; gap: 20px; }
         .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
         .card { background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #4a6741; margin-bottom: 20px; }
         .card h3 { color: #2c3e50; margin-bottom: 15px; }
+        .card-success { border-left-color: #28a745; }
+        .card-info { border-left-color: #17a2b8; }
         .multa-item { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #dc3545; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .multa-item.paga { border-left-color: #28a745; opacity: 0.7; }
         .multa-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -39,15 +45,40 @@
         .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; }
         .stat-number { font-size: 2rem; font-weight: bold; margin-bottom: 5px; }
         .alert { padding: 15px; margin-bottom: 20px; border-radius: 8px; border-left: 4px solid #17a2b8; background-color: #d1ecf1; color: #0c5460; }
+        .alert-success { border-left-color: #28a745; background-color: #d4edda; color: #155724; }
+        .alert-warning { border-left-color: #ffc107; background-color: #fff3cd; color: #856404; }
         .empty-state { color: #6c757d; text-align: center; padding: 40px 20px; font-style: italic; }
+        .filtros-avancados { background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .filtros-avancados h4 { color: #1565c0; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .resultados-info { background: #f8f9fa; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .resultados-resumo { display: flex; gap: 20px; flex-wrap: wrap; }
+        .resumo-item { text-align: center; }
+        .resumo-numero { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+        .resumo-label { font-size: 0.9rem; color: #6c757d; }
+        .export-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         @media (max-width: 768px) {
-            .grid-2 { grid-template-columns: 1fr; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
             .tabs { flex-direction: column; }
             .container { margin: 10px; border-radius: 10px; }
             .header { padding: 20px; }
             .header h1 { font-size: 2rem; }
-            .multa-header { flex-direction: column; align-items: flex-start; }
+            .multa-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .resultados-info { flex-direction: column; align-items: stretch; }
+            .resultados-resumo { justify-content: center; }
+            .export-actions { justify-content: center; }
         }
+        
+        /* Animações para feedback */
+        .loading { opacity: 0.6; pointer-events: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Estilos para destacar filtros ativos */
+        .filtro-ativo { border-color: #4a6741 !important; box-shadow: 0 0 0 0.2rem rgba(74, 103, 65, 0.25); }
+        
+        /* Loading spinner */
+        .spinner { border: 2px solid #f3f3f3; border-radius: 50%; border-top: 2px solid #4a6741; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -62,6 +93,7 @@
             <button class="tab" onclick="mostrarTab('regras', this)">Regras de Multa</button>
             <button class="tab" onclick="mostrarTab('consultar', this)">Consultar Multas</button>
         </div>
+        
         <!-- Tab: Registar Multa -->
         <div id="registar" class="tab-content active">
             <div class="stats">
@@ -110,6 +142,7 @@
                 </form>
             </div>
         </div>
+        
         <!-- Tab: Gestão Atletas -->
         <div id="atletas" class="tab-content">
             <div class="card">
@@ -135,6 +168,7 @@
                 </div>
             </div>
         </div>
+        
         <!-- Tab: Regras de Multa -->
         <div id="regras" class="tab-content">
             <div class="card">
@@ -160,29 +194,75 @@
                 </div>
             </div>
         </div>
+        
         <!-- Tab: Consultar Multas -->
         <div id="consultar" class="tab-content">
-            <div class="card">
-                <h3>Filtros</h3>
-                <div class="grid grid-2">
+            <!-- Filtros Avançados -->
+            <div class="filtros-avancados">
+                <h4>🔍 Filtros Avançados</h4>
+                <div class="grid grid-4">
                     <div class="form-group">
                         <label>Atleta</label>
-                        <select id="filtroAtleta">
+                        <select id="filtroAtleta" onchange="aplicarFiltros()">
                             <option value="">Todos os atletas</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Estado</label>
-                        <select id="filtroEstado">
+                        <select id="filtroEstado" onchange="aplicarFiltros()">
                             <option value="">Todas as multas</option>
                             <option value="pendente">Pendentes</option>
                             <option value="paga">Pagas</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label>Data Início</label>
+                        <input type="date" id="filtroDataInicio" onchange="aplicarFiltros()">
+                    </div>
+                    <div class="form-group">
+                        <label>Data Fim</label>
+                        <input type="date" id="filtroDataFim" onchange="aplicarFiltros()">
+                    </div>
                 </div>
-                <button onclick="aplicarFiltros()" class="btn">Aplicar Filtros</button>
-                <button onclick="limparFiltros()" class="btn btn-secondary">Limpar Filtros</button>
+                <div style="margin-top: 15px;">
+                    <button onclick="aplicarFiltros()" class="btn btn-info">Aplicar Filtros</button>
+                    <button onclick="limparFiltros()" class="btn btn-secondary">Limpar Filtros</button>
+                    <button onclick="definirPeriodoRapido('mes')" class="btn btn-secondary">Último Mês</button>
+                    <button onclick="definirPeriodoRapido('trimestre')" class="btn btn-secondary">Último Trimestre</button>
+                </div>
             </div>
+            
+            <!-- Resumo dos Resultados -->
+            <div class="resultados-info">
+                <div class="resultados-resumo">
+                    <div class="resumo-item">
+                        <div class="resumo-numero" id="resumoTotal">0</div>
+                        <div class="resumo-label">Total Multas</div>
+                    </div>
+                    <div class="resumo-item">
+                        <div class="resumo-numero" id="resumoValor">0€</div>
+                        <div class="resumo-label">Valor Total</div>
+                    </div>
+                    <div class="resumo-item">
+                        <div class="resumo-numero" id="resumoPendente">0€</div>
+                        <div class="resumo-label">Por Pagar</div>
+                    </div>
+                    <div class="resumo-item">
+                        <div class="resumo-numero" id="resumoPago">0€</div>
+                        <div class="resumo-label">Já Pago</div>
+                    </div>
+                </div>
+                <div class="export-actions">
+                    <button onclick="exportarExcel()" class="btn btn-success" id="btnExportar">
+                        📊 Exportar Excel
+                    </button>
+                    <button onclick="imprimirRelatorio()" class="btn btn-info">
+                        🖨️ Imprimir
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Lista de Multas -->
             <div class="card">
                 <h3>Lista de Multas (<span id="contadorMultas">0</span>)</h3>
                 <div id="listaMultas">
@@ -192,13 +272,13 @@
         </div>
     </div>
 
-    <!-- Firebase + App Logic (MÓDULO) -->
+    <!-- Firebase + App Logic -->
     <script type="module">
-        // ====== Firebase SDKs ======
+        // Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, onSnapshot, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-        // ====== Configuração do teu projeto Firebase ======
+        // Configuração Firebase (usa a tua configuração real)
         const firebaseConfig = {
             apiKey: "AIzaSyAmS6-cKRx_p6IStvwM2XZD7mHAmprSpc0",
             authDomain: "multasdab.firebaseapp.com",
@@ -212,19 +292,19 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ====== Estado da App (memória) ======
-        let atletas = [];      // [{id, nome, numero}]
-        let regrasMulta = [];  // [{id, descricao, valor}]
-        let multas = [];       // [{id, atletaId, regraId, data, observacoes, paga, dataPagamento}]
+        // Estado da App
+        let atletas = [];
+        let regrasMulta = [];
+        let multas = [];
+        let multasFiltradas = [];
 
-        // ====== Referências das coleções ======
+        // Referências das coleções
         const colAtletas = collection(db, 'atletas');
         const colRegras = collection(db, 'regras');
         const colMultas = collection(db, 'multas');
 
-        // ====== Inicialização ======
+        // Inicialização
         function inicializar() {
-            // Definir data de hoje como padrão
             const hoje = new Date();
             const elData = document.getElementById('dataMulta');
             if (elData) elData.value = hoje.toISOString().split('T')[0];
@@ -244,27 +324,28 @@
                 multas = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
                 atualizarInterface();
                 if (document.getElementById('consultar').classList.contains('active')) {
-                    mostrarMultas();
+                    aplicarFiltros();
                 }
             });
         }
 
-        // ====== Navegação Tabs ======
+        // Navegação Tabs
         window.mostrarTab = function(nomeTab, elBotao) {
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
             if (elBotao) elBotao.classList.add('active');
             document.getElementById(nomeTab).classList.add('active');
+            
             if (nomeTab === 'consultar') {
                 atualizarFiltros();
-                mostrarMultas();
+                aplicarFiltros();
             } else if (nomeTab === 'registar') {
                 verificarRequisitos();
                 atualizarEstatisticas();
             }
         }
 
-        // ====== Validações e UI ======
+        // Validações e UI
         function verificarRequisitos() {
             const alerta = document.getElementById('alertaRegistar');
             const form = document.getElementById('formMulta');
@@ -279,7 +360,7 @@
             }
         }
 
-        // ====== CRUD: Atletas ======
+        // CRUD: Atletas
         window.adicionarAtleta = async function(event) {
             event.preventDefault();
             const nome = document.getElementById('nomeAtleta').value.trim();
@@ -290,20 +371,23 @@
                 return alert('Já existe um atleta com esse número de camisola!');
             }
 
-            await addDoc(colAtletas, {
-                nome: nome,
-                numero: numeroVal ? Number(numeroVal) : null
-            });
-
-            document.getElementById('formAtleta').reset();
-            alert(`Atleta "${nome}" adicionado com sucesso!`);
+            try {
+                await addDoc(colAtletas, {
+                    nome: nome,
+                    numero: numeroVal ? Number(numeroVal) : null
+                });
+                document.getElementById('formAtleta').reset();
+                alert(`Atleta "${nome}" adicionado com sucesso!`);
+            } catch (error) {
+                console.error('Erro ao adicionar atleta:', error);
+                alert('Erro ao adicionar atleta. Tenta novamente.');
+            }
         }
 
         window.removerAtleta = async function(atletaId) {
             const multasAtleta = multas.filter(m => m.atletaId === atletaId);
             if (multasAtleta.length > 0) {
                 if (!confirm(`Este atleta tem ${multasAtleta.length} multa(s). Remover o atleta irá remover também todas as suas multas. Continuar?`)) return;
-                // Remover multas do atleta
                 for (const m of multasAtleta) {
                     await deleteDoc(doc(db, 'multas', m.id));
                 }
@@ -312,16 +396,22 @@
             alert('Atleta removido com sucesso!');
         }
 
-        // ====== CRUD: Regras ======
+        // CRUD: Regras
         window.adicionarRegra = async function(event) {
             event.preventDefault();
             const descricao = document.getElementById('descricaoRegra').value.trim();
             const valor = parseFloat(document.getElementById('valorRegra').value);
             if (!descricao) return alert('Por favor, insira a descrição da regra.');
             if (isNaN(valor) || valor < 0) return alert('Por favor, insira um valor válido para a multa.');
-            await addDoc(colRegras, { descricao, valor });
-            document.getElementById('formRegra').reset();
-            alert(`Regra "${descricao}" adicionada com sucesso!`);
+            
+            try {
+                await addDoc(colRegras, { descricao, valor });
+                document.getElementById('formRegra').reset();
+                alert(`Regra "${descricao}" adicionada com sucesso!`);
+            } catch (error) {
+                console.error('Erro ao adicionar regra:', error);
+                alert('Erro ao adicionar regra. Tenta novamente.');
+            }
         }
 
         window.removerRegra = async function(regraId) {
@@ -335,32 +425,37 @@
             }
         }
 
-        // ====== CRUD: Multas ======
+        // CRUD: Multas
         window.registarMulta = async function(event) {
             event.preventDefault();
-            const atletaId = document.getElementById('atletaSelect').value; // string ID
-            const regraId = document.getElementById('regraSelect').value;   // string ID
+            const atletaId = document.getElementById('atletaSelect').value;
+            const regraId = document.getElementById('regraSelect').value;
             const data = document.getElementById('dataMulta').value;
             const observacoes = document.getElementById('observacoes').value.trim();
 
             if (!atletaId || !regraId || !data) return alert('Por favor, preencha todos os campos obrigatórios.');
 
-            await addDoc(colMultas, {
-                atletaId,
-                regraId,
-                data,
-                observacoes,
-                paga: false,
-                dataPagamento: null
-            });
+            try {
+                await addDoc(colMultas, {
+                    atletaId,
+                    regraId,
+                    data,
+                    observacoes,
+                    paga: false,
+                    dataPagamento: null
+                });
 
-            document.getElementById('atletaSelect').value = '';
-            document.getElementById('regraSelect').value = '';
-            document.getElementById('observacoes').value = '';
+                document.getElementById('atletaSelect').value = '';
+                document.getElementById('regraSelect').value = '';
+                document.getElementById('observacoes').value = '';
 
-            const atleta = atletas.find(a => a.id === atletaId);
-            const regra = regrasMulta.find(r => r.id === regraId);
-            alert(`Multa registada com sucesso!\n\nAtleta: ${atleta?.nome}\nRegra: ${regra?.descricao}\nValor: ${regra ? regra.valor.toFixed(2) : '—'}€`);
+                const atleta = atletas.find(a => a.id === atletaId);
+                const regra = regrasMulta.find(r => r.id === regraId);
+                alert(`Multa registada com sucesso!\n\nAtleta: ${atleta?.nome}\nRegra: ${regra?.descricao}\nValor: ${regra ? regra.valor.toFixed(2) : '—'}€`);
+            } catch (error) {
+                console.error('Erro ao registar multa:', error);
+                alert('Erro ao registar multa. Tenta novamente.');
+            }
         }
 
         window.marcarComoPaga = async function(multaId) {
@@ -381,7 +476,306 @@
             }
         }
 
-        // ====== Atualizar UI ======
+        // === NOVAS FUNCIONALIDADES DA FASE 1 ===
+
+        // Filtros Avançados
+        window.aplicarFiltros = function() {
+            let filtradas = [...multas];
+
+            // Filtro por atleta
+            const filtroAtleta = document.getElementById('filtroAtleta').value;
+            if (filtroAtleta) {
+                filtradas = filtradas.filter(m => m.atletaId === filtroAtleta);
+            }
+
+            // Filtro por estado
+            const filtroEstado = document.getElementById('filtroEstado').value;
+            if (filtroEstado) {
+                filtradas = filtradas.filter(m => filtroEstado === 'paga' ? m.paga : !m.paga);
+            }
+
+            // Filtro por data início
+            const dataInicio = document.getElementById('filtroDataInicio').value;
+            if (dataInicio) {
+                filtradas = filtradas.filter(m => m.data >= dataInicio);
+                document.getElementById('filtroDataInicio').classList.add('filtro-ativo');
+            } else {
+                document.getElementById('filtroDataInicio').classList.remove('filtro-ativo');
+            }
+
+            // Filtro por data fim
+            const dataFim = document.getElementById('filtroDataFim').value;
+            if (dataFim) {
+                filtradas = filtradas.filter(m => m.data <= dataFim);
+                document.getElementById('filtroDataFim').classList.add('filtro-ativo');
+            } else {
+                document.getElementById('filtroDataFim').classList.remove('filtro-ativo');
+            }
+
+            // Ordenar por data (mais recente primeiro)
+            filtradas.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            multasFiltradas = filtradas;
+            mostrarMultas();
+            atualizarResumoFiltros();
+        }
+
+        window.limparFiltros = function() {
+            document.getElementById('filtroAtleta').value = '';
+            document.getElementById('filtroEstado').value = '';
+            document.getElementById('filtroDataInicio').value = '';
+            document.getElementById('filtroDataFim').value = '';
+            
+            // Remover classes de filtro ativo
+            document.getElementById('filtroDataInicio').classList.remove('filtro-ativo');
+            document.getElementById('filtroDataFim').classList.remove('filtro-ativo');
+            
+            aplicarFiltros();
+        }
+
+        // Períodos Rápidos
+        window.definirPeriodoRapido = function(tipo) {
+            const hoje = new Date();
+            let dataInicio = new Date();
+            
+            switch(tipo) {
+                case 'mes':
+                    dataInicio.setMonth(hoje.getMonth() - 1);
+                    break;
+                case 'trimestre':
+                    dataInicio.setMonth(hoje.getMonth() - 3);
+                    break;
+            }
+            
+            document.getElementById('filtroDataInicio').value = dataInicio.toISOString().split('T')[0];
+            document.getElementById('filtroDataFim').value = hoje.toISOString().split('T')[0];
+            aplicarFiltros();
+        }
+
+        // Resumo dos Filtros
+        function atualizarResumoFiltros() {
+            const total = multasFiltradas.length;
+            const valorTotal = multasFiltradas.reduce((sum, multa) => {
+                const regra = regrasMulta.find(r => r.id === multa.regraId);
+                return sum + (regra ? Number(regra.valor) : 0);
+            }, 0);
+            
+            const valorPendente = multasFiltradas.filter(m => !m.paga).reduce((sum, multa) => {
+                const regra = regrasMulta.find(r => r.id === multa.regraId);
+                return sum + (regra ? Number(regra.valor) : 0);
+            }, 0);
+            
+            const valorPago = valorTotal - valorPendente;
+            
+            document.getElementById('resumoTotal').textContent = total;
+            document.getElementById('resumoValor').textContent = valorTotal.toFixed(2) + '€';
+            document.getElementById('resumoPendente').textContent = valorPendente.toFixed(2) + '€';
+            document.getElementById('resumoPago').textContent = valorPago.toFixed(2) + '€';
+        }
+
+        // Exportação Excel
+        window.exportarExcel = function() {
+            if (multasFiltradas.length === 0) {
+                alert('Não há multas para exportar com os filtros aplicados.');
+                return;
+            }
+
+            const btnExportar = document.getElementById('btnExportar');
+            btnExportar.innerHTML = '📊 Exportando... <div class="spinner"></div>';
+            btnExportar.disabled = true;
+
+            // Preparar dados para Excel
+            const dadosExcel = [];
+            
+            // Cabeçalho
+            dadosExcel.push([
+                'Nº Atleta',
+                'Nome do Atleta',
+                'Regra Infringida',
+                'Valor (€)',
+                'Data da Infração',
+                'Estado',
+                'Data Pagamento',
+                'Observações'
+            ]);
+
+            // Dados das multas
+            multasFiltradas.forEach(multa => {
+                const atleta = atletas.find(a => a.id === multa.atletaId);
+                const regra = regrasMulta.find(r => r.id === multa.regraId);
+                
+                if (atleta && regra) {
+                    dadosExcel.push([
+                        atleta.numero || '-',
+                        atleta.nome,
+                        regra.descricao,
+                        regra.valor.toFixed(2),
+                        new Date(multa.data).toLocaleDateString('pt-PT'),
+                        multa.paga ? 'Paga' : 'Pendente',
+                        multa.dataPagamento ? new Date(multa.dataPagamento).toLocaleDateString('pt-PT') : '-',
+                        multa.observacoes || '-'
+                    ]);
+                }
+            });
+
+            // Criar e baixar Excel
+            setTimeout(() => {
+                criarExcel(dadosExcel);
+                btnExportar.innerHTML = '📊 Exportar Excel';
+                btnExportar.disabled = false;
+            }, 500);
+        }
+
+        function criarExcel(dados) {
+            // Criar conteúdo CSV (mais simples que Excel binário)
+            let csvContent = '';
+            
+            dados.forEach(linha => {
+                const linhaProcessada = linha.map(campo => {
+                    // Escapar aspas e vírgulas
+                    const campoStr = String(campo);
+                    if (campoStr.includes(',') || campoStr.includes('"') || campoStr.includes('\n')) {
+                        return '"' + campoStr.replace(/"/g, '""') + '"';
+                    }
+                    return campoStr;
+                });
+                csvContent += linhaProcessada.join(',') + '\n';
+            });
+
+            // Adicionar BOM para suporte a caracteres especiais
+            const BOM = '\uFEFF';
+            const finalContent = BOM + csvContent;
+
+            // Criar e baixar arquivo
+            const blob = new Blob([finalContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                
+                // Nome do arquivo com data atual
+                const agora = new Date();
+                const dataStr = agora.toISOString().split('T')[0];
+                link.setAttribute('download', `multas_DAB_${dataStr}.csv`);
+                
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Mostrar mensagem de sucesso
+                setTimeout(() => {
+                    alert('📊 Exportação concluída!\n\nO arquivo foi baixado como CSV (compatível com Excel).\n\n💡 Dica: Abra o arquivo no Excel e use "Dados → Texto para Colunas" se necessário.');
+                }, 100);
+            }
+        }
+
+        // Imprimir Relatório
+        window.imprimirRelatorio = function() {
+            if (multasFiltradas.length === 0) {
+                alert('Não há multas para imprimir com os filtros aplicados.');
+                return;
+            }
+
+            // Criar janela de impressão
+            const janelaImpressao = window.open('', '_blank');
+            
+            let html = `
+                <html>
+                <head>
+                    <title>Relatório de Multas - Desportivo Arco de Baúlhe</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .cabecalho { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px; }
+                        .resumo { background: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+                        .resumo-item { display: inline-block; margin-right: 30px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+                        th { background-color: #4a6741; color: white; }
+                        .pendente { background-color: #ffebee; }
+                        .paga { background-color: #e8f5e8; }
+                        .rodape { margin-top: 30px; text-align: center; font-size: 10px; color: #666; }
+                        @media print {
+                            body { margin: 10px; }
+                            .cabecalho { page-break-after: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="cabecalho">
+                        <h1>⚽ Desportivo Arco de Baúlhe</h1>
+                        <h2>Relatório de Multas</h2>
+                        <p>Data de Emissão: ${new Date().toLocaleDateString('pt-PT')}</p>
+                    </div>
+                    
+                    <div class="resumo">
+                        <div class="resumo-item"><strong>Total de Multas:</strong> ${multasFiltradas.length}</div>
+                        <div class="resumo-item"><strong>Valor Total:</strong> ${multasFiltradas.reduce((sum, m) => {
+                            const regra = regrasMulta.find(r => r.id === m.regraId);
+                            return sum + (regra ? Number(regra.valor) : 0);
+                        }, 0).toFixed(2)}€</div>
+                        <div class="resumo-item"><strong>Por Pagar:</strong> ${multasFiltradas.filter(m => !m.paga).reduce((sum, m) => {
+                            const regra = regrasMulta.find(r => r.id === m.regraId);
+                            return sum + (regra ? Number(regra.valor) : 0);
+                        }, 0).toFixed(2)}€</div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Atleta</th>
+                                <th>Regra</th>
+                                <th>Valor</th>
+                                <th>Data</th>
+                                <th>Estado</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            multasFiltradas.forEach(multa => {
+                const atleta = atletas.find(a => a.id === multa.atletaId);
+                const regra = regrasMulta.find(r => r.id === multa.regraId);
+                
+                if (atleta && regra) {
+                    html += `
+                        <tr class="${multa.paga ? 'paga' : 'pendente'}">
+                            <td>${atleta.numero || '-'}</td>
+                            <td>${atleta.nome}</td>
+                            <td>${regra.descricao}</td>
+                            <td>${regra.valor.toFixed(2)}€</td>
+                            <td>${new Date(multa.data).toLocaleDateString('pt-PT')}</td>
+                            <td>${multa.paga ? '✅ Paga' : '❌ Pendente'}</td>
+                            <td>${multa.observacoes || '-'}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="rodape">
+                        <p>Este relatório foi gerado automaticamente pelo Sistema de Gestão de Multas do Desportivo Arco de Baúlhe</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            janelaImpressao.document.write(html);
+            janelaImpressao.document.close();
+            
+            // Aguardar carregamento e imprimir
+            setTimeout(() => {
+                janelaImpressao.print();
+            }, 500);
+        }
+
+        // Atualizar UI
         function atualizarInterface() {
             atualizarSelectAtletas();
             atualizarSelectRegras();
@@ -398,9 +792,13 @@
                 if (!select) return;
                 const valorAtual = select.value;
                 while (select.children.length > 1) select.removeChild(select.lastChild);
-                atletas.forEach(atleta => {
+                
+                // Ordenar atletas por nome
+                const atletasOrdenados = [...atletas].sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                atletasOrdenados.forEach(atleta => {
                     const option = document.createElement('option');
-                    option.value = atleta.id; // ID Firestore
+                    option.value = atleta.id;
                     option.textContent = `${atleta.nome}${atleta.numero ? ' (#' + atleta.numero + ')' : ''}`;
                     select.appendChild(option);
                 });
@@ -413,9 +811,13 @@
             if (!select) return;
             const valorAtual = select.value;
             while (select.children.length > 1) select.removeChild(select.lastChild);
-            regrasMulta.forEach(regra => {
+            
+            // Ordenar regras por valor
+            const regrasOrdenadas = [...regrasMulta].sort((a, b) => a.valor - b.valor);
+            
+            regrasOrdenadas.forEach(regra => {
                 const option = document.createElement('option');
-                option.value = regra.id; // ID Firestore
+                option.value = regra.id;
                 option.textContent = `${regra.descricao} - ${regra.valor.toFixed(2)}€`;
                 select.appendChild(option);
             });
@@ -426,10 +828,12 @@
             const container = document.getElementById('listaAtletas');
             const contador = document.getElementById('contadorAtletas');
             contador.textContent = atletas.length;
+            
             if (atletas.length === 0) {
                 container.innerHTML = '<div class="empty-state">Nenhum atleta registado ainda.</div>';
                 return;
             }
+            
             let html = '';
             atletas.forEach(atleta => {
                 const multasAtleta = multas.filter(m => m.atletaId === atleta.id);
@@ -441,6 +845,7 @@
                     const regra = regrasMulta.find(r => r.id === multa.regraId);
                     return total + (regra ? Number(regra.valor) : 0);
                 }, 0);
+                
                 html += `
                     <div class="multa-item">
                         <div class="multa-header">
@@ -461,13 +866,16 @@
             const container = document.getElementById('listaRegras');
             const contador = document.getElementById('contadorRegras');
             contador.textContent = regrasMulta.length;
+            
             if (regrasMulta.length === 0) {
                 container.innerHTML = '<div class="empty-state">Nenhuma regra de multa definida ainda.</div>';
                 return;
             }
+            
             let html = '';
             regrasMulta.forEach(regra => {
                 const vezesUsada = multas.filter(m => m.regraId === regra.id).length;
+                
                 html += `
                     <div class="multa-item">
                         <div class="multa-header">
@@ -494,34 +902,36 @@
                 const regra = regrasMulta.find(r => r.id === multa.regraId);
                 return total + (regra ? Number(regra.valor) : 0);
             }, 0);
+            
             document.getElementById('totalMultas').textContent = totalMultas;
             document.getElementById('totalValor').textContent = valorTotal.toFixed(2) + '€';
             document.getElementById('valorPendente').textContent = valorPendente.toFixed(2) + '€';
         }
 
-        function atualizarFiltros() { atualizarSelectAtletas(); }
+        function atualizarFiltros() { 
+            atualizarSelectAtletas(); 
+        }
 
         function mostrarMultas() {
             const container = document.getElementById('listaMultas');
             const contador = document.getElementById('contadorMultas');
-            let multasFiltradas = [...multas];
-            const filtroAtleta = document.getElementById('filtroAtleta').value;
-            const filtroEstado = document.getElementById('filtroEstado').value;
-            if (filtroAtleta) multasFiltradas = multasFiltradas.filter(m => m.atletaId === filtroAtleta);
-            if (filtroEstado) multasFiltradas = multasFiltradas.filter(m => filtroEstado === 'paga' ? m.paga : !m.paga);
-            multasFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
             contador.textContent = multasFiltradas.length;
+            
             if (multasFiltradas.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhuma multa encontrada.</div>';
+                container.innerHTML = '<div class="empty-state">Nenhuma multa encontrada com os filtros aplicados.</div>';
                 return;
             }
+            
             let html = '';
             multasFiltradas.forEach(multa => {
                 const atleta = atletas.find(a => a.id === multa.atletaId);
                 const regra = regrasMulta.find(r => r.id === multa.regraId);
-                if (!atleta || !regra) return; // Em caso de dados inconsistentes
+                
+                if (!atleta || !regra) return;
+                
                 html += `
-                    <div class="multa-item ${multa.paga ? 'paga' : ''}">
+                    <div class="multa-item ${multa.paga ? 'paga' : ''} fade-in">
                         <div class="multa-header">
                             <div>
                                 <strong>${atleta.nome}${atleta.numero ? ' (#' + atleta.numero + ')' : ''}</strong>
@@ -535,7 +945,7 @@
                         ${multa.observacoes ? `<div style="font-style: italic; color: #6c757d; margin-top: 5px;">${multa.observacoes}</div>` : ''}
                         <div style="margin-top: 10px;">
                             ${multa.paga ?
-                                `<span style=\"color: #28a745; font-weight: bold;\">✓ Paga em ${multa.dataPagamento ? new Date(multa.dataPagamento).toLocaleDateString('pt-PT') : ''}</span>
+                                `<span style=\"color: #28a745; font-weight: bold;\">✅ Paga em ${multa.dataPagamento ? new Date(multa.dataPagamento).toLocaleDateString('pt-PT') : ''}</span>
                                  <button onclick=\"marcarComoPendente('${multa.id}')\" class=\"btn btn-secondary btn-small\">Marcar como Pendente</button>` :
                                 `<button onclick=\"marcarComoPaga('${multa.id}')\" class=\"btn btn-small\">Marcar como Paga</button>`}
                             <button onclick="removerMulta('${multa.id}')" class="btn btn-danger btn-small">Remover</button>
@@ -546,17 +956,15 @@
             container.innerHTML = html;
         }
 
-        window.aplicarFiltros = function() { mostrarMultas(); }
-        window.limparFiltros = function() { document.getElementById('filtroAtleta').value = ''; document.getElementById('filtroEstado').value = ''; mostrarMultas(); }
-
-        // ====== Debug Helpers (opcionais) ======
+        // Debug Helpers
         window.debugApp = {
             atletas: () => atletas,
             regras: () => regrasMulta,
-            multas: () => multas
+            multas: () => multas,
+            multasFiltradas: () => multasFiltradas
         };
 
-        // ====== Arrancar app ======
+        // Inicializar
         window.addEventListener('DOMContentLoaded', inicializar);
     </script>
 </body>
