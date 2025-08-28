@@ -273,6 +273,8 @@
     </div>
 
     <!-- Firebase + App Logic -->
+	<!-- SheetJS: exportar para .xlsx -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script type="module">
         // Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -584,92 +586,85 @@
             btnExportar.innerHTML = '📊 Exportando... <div class="spinner"></div>';
             btnExportar.disabled = true;
 
-            // Preparar dados para Excel
-            const dadosExcel = [];
-            
-            // Cabeçalho
-            dadosExcel.push([
-                'Nº Atleta',
-                'Nome do Atleta',
-                'Regra Infringida',
-                'Valor (€)',
-                'Data da Infração',
-                'Estado',
-                'Data Pagamento',
-                'Observações'
-            ]);
+            // Preparar dados para Excel (cada coluna será uma célula separada)
+			const dadosExcel = [];
 
-            // Dados das multas
-            multasFiltradas.forEach(multa => {
-                const atleta = atletas.find(a => a.id === multa.atletaId);
-                const regra = regrasMulta.find(r => r.id === multa.regraId);
-                
-                if (atleta && regra) {
-                    dadosExcel.push([
-                        atleta.numero || '-',
-                        atleta.nome,
-                        regra.descricao,
-                        regra.valor.toFixed(2),
-                        new Date(multa.data).toLocaleDateString('pt-PT'),
-                        multa.paga ? 'Paga' : 'Pendente',
-                        multa.dataPagamento ? new Date(multa.dataPagamento).toLocaleDateString('pt-PT') : '-',
-                        multa.observacoes || '-'
-                    ]);
-                }
-            });
+			// Cabeçalho
+			dadosExcel.push([
+				'Nº Atleta',
+				'Nome do Atleta',
+				'Regra Infringida',
+				'Valor (€)',
+				'Data da Infração',
+				'Estado',
+				'Data Pagamento',
+				'Observações'
+			]);
 
-            // Criar e baixar Excel
-            setTimeout(() => {
-                criarExcel(dadosExcel);
-                btnExportar.innerHTML = '📊 Exportar Excel';
-                btnExportar.disabled = false;
-            }, 500);
+			// Dados das multas
+			multasFiltradas.forEach(multa => {
+				const atleta = atletas.find(a => a.id === multa.atletaId);
+				const regra = regrasMulta.find(r => r.id === multa.regraId);
+
+				if (atleta && regra) {
+					dadosExcel.push([
+						atleta.numero || '-',
+						atleta.nome,
+						regra.descricao,
+						Number(regra.valor), // <-- número, não string
+						new Date(multa.data).toLocaleDateString('pt-PT'),
+						multa.paga ? 'Paga' : 'Pendente',
+						multa.dataPagamento ? new Date(multa.dataPagamento).toLocaleDateString('pt-PT') : '-',
+						multa.observacoes || '-'
+					]);
+				}
+			});
+
+            // Criar e baixar Excel (versão robusta com tratamento de erros)
+			try {
+				criarExcel(dadosExcel);
+				btnExportar.innerHTML = '📊 Exportar Excel';
+				btnExportar.disabled = false;
+				alert('📊 Exportação concluída!\n\nO ficheiro foi gerado em .xlsx (compatível com Excel).');
+			} catch (err) {
+				console.error('Erro ao exportar para Excel:', err);
+				btnExportar.innerHTML = '📊 Exportar Excel';
+				btnExportar.disabled = false;
+				alert('Erro ao exportar ficheiro. Verifica o console do browser para mais detalhes.');
+			}
+
         }
 
-        function criarExcel(dados) {
-            // Criar conteúdo CSV (mais simples que Excel binário)
-            let csvContent = '';
-            
-            dados.forEach(linha => {
-                const linhaProcessada = linha.map(campo => {
-                    // Escapar aspas e vírgulas
-                    const campoStr = String(campo);
-                    if (campoStr.includes(',') || campoStr.includes('"') || campoStr.includes('\n')) {
-                        return '"' + campoStr.replace(/"/g, '""') + '"';
-                    }
-                    return campoStr;
-                });
-                csvContent += linhaProcessada.join(',') + '\n';
-            });
+			function criarExcel(dados) {
+			// Ajusta larguras das colunas automaticamente com base no conteúdo
+				function calcularLarguras(aoa) {
+					const nCols = aoa[0] ? aoa[0].length : 0;
+					const colWidths = new Array(nCols).fill(0).map(() => ({ wch: 10 }));
+					for (let r = 0; r < aoa.length; r++) {
+						for (let c = 0; c < nCols; c++) {
+						const cell = aoa[r][c];
+						const comprimento = String(cell === null || cell === undefined ? '' : cell).length;
+						if (comprimento > (colWidths[c].wch || 10)) colWidths[c].wch = Math.min(comprimento + 2, 50);
+					}
+				}
+				return colWidths;
+		}
 
-            // Adicionar BOM para suporte a caracteres especiais
-            const BOM = '\uFEFF';
-            const finalContent = BOM + csvContent;
+			// Cria worksheet a partir do array de arrays
+			const ws = XLSX.utils.aoa_to_sheet(dados);
 
-            // Criar e baixar arquivo
-            const blob = new Blob([finalContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            
-            if (link.download !== undefined) {
-                const url = URL.createObjectURL(blob);
-                link.setAttribute('href', url);
-                
-                // Nome do arquivo com data atual
-                const agora = new Date();
-                const dataStr = agora.toISOString().split('T')[0];
-                link.setAttribute('download', `multas_DAB_${dataStr}.csv`);
-                
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Mostrar mensagem de sucesso
-                setTimeout(() => {
-                    alert('📊 Exportação concluída!\n\nO arquivo foi baixado como CSV (compatível com Excel).\n\n💡 Dica: Abra o arquivo no Excel e use "Dados → Texto para Colunas" se necessário.');
-                }, 100);
-            }
-        }
+			// Ajustar larguras
+			ws['!cols'] = calcularLarguras(dados);
+
+			// Workbook
+			const wb = XLSX.utils.book_new();
+			XLSX.utils.book_append_sheet(wb, ws, "Multas");
+
+			// Gerar e baixar ficheiro .xlsx
+			const agora = new Date();
+			const dataStr = agora.toISOString().split('T')[0];
+			XLSX.writeFile(wb, `multas_DAB_${dataStr}.xlsx`);
+		}
 
         // Imprimir Relatório
         window.imprimirRelatorio = function() {
