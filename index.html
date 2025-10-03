@@ -79,14 +79,81 @@
         /* Loading spinner */
         .spinner { border: 2px solid #f3f3f3; border-radius: 50%; border-top: 2px solid #4a6741; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-left: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+		
+		/* Estilos para autenticação - adicionar após os estilos existentes */
+		.login-container { max-width: 400px; margin: 10% auto; background: white; border-radius: 15px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+		.login-header { background: linear-gradient(135deg, #2c3e50 0%, #4a6741 100%); color: white; padding: 40px 30px; text-align: center; }
+		.login-content { padding: 40px 30px; }
+		.login-tabs { display: flex; margin-bottom: 30px; background: #f8f9fa; border-radius: 8px; overflow: hidden; }
+		.login-tab { flex: 1; padding: 12px; text-align: center; background: none; border: none; cursor: pointer; font-weight: 600; color: #6c757d; transition: all 0.3s; }
+		.login-tab.active { background: #4a6741; color: white; }
+		.user-info { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 25px; }
+		.user-avatar { width: 32px; height: 32px; border-radius: 50%; background: white; color: #4a6741; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+		.logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 15px; border-radius: 15px; cursor: pointer; transition: background 0.3s; }
+		.logout-btn:hover { background: rgba(255,255,255,0.3); }
+		.app-hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⚽ Desportivo Arco de Baúlhe - Registo de Multas</h1>
-            <p>Gestão de Multas da Época 2025/2026</p>
+		<!-- Página de Login -->
+<div id="loginPage" class="login-container">
+    <div class="login-header">
+        <h1>⚽ DAB</h1>
+        <p>Sistema de Gestão de Multas</p>
+    </div>
+    <div class="login-content">
+        <div class="login-tabs">
+            <button class="login-tab active" onclick="mostrarLoginTab('login')">Entrar</button>
+            <button class="login-tab" onclick="mostrarLoginTab('registo')">Registar</button>
         </div>
+        
+        <!-- Formulário Login -->
+        <div id="loginForm">
+            <form onsubmit="realizarLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Entrar</button>
+            </form>
+        </div>
+        
+        <!-- Formulário Registo -->
+        <div id="registoForm" style="display: none;">
+            <form onsubmit="realizarRegisto(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="registoEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registoPassword" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirmar Password</label>
+                    <input type="password" id="registoPasswordConfirm" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Registar</button>
+            </form>
+        </div>
+        
+        <div id="authMessage" class="alert" style="display: none; margin-top: 20px;"></div>
+    </div>
+</div>
+		<div class="container app-hidden" id="mainApp">
+			<div class="header">
+			<h1>⚽ Desportivo Arco de Baúlhe - Registo de Multas</h1>
+			<p>Gestão de Multas da Época 2025/2026</p>
+			<div class="user-info" id="userInfo" style="display: none;">
+			<div class="user-avatar" id="userAvatar">U</div>
+			<span id="userEmail">utilizador@email.com</span>
+			<button class="logout-btn" onclick="logout()">Sair</button>
+			</div>
+		</div>
         <div class="tabs">
             <button class="tab active" onclick="mostrarTab('registar', this)">Registar Multa</button>
             <button class="tab" onclick="mostrarTab('atletas', this)">Gestão Atletas</button>
@@ -279,6 +346,7 @@
         // Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, onSnapshot, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+		import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
         // Configuração Firebase (usa a tua configuração real)
         const firebaseConfig = {
@@ -293,6 +361,8 @@
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+		const auth = getAuth(app);
+		let utilizadorAtual = null;
 
         // Estado da App
         let atletas = [];
@@ -304,6 +374,88 @@
         const colAtletas = collection(db, 'atletas');
         const colRegras = collection(db, 'regras');
         const colMultas = collection(db, 'multas');
+		
+		// === AUTENTICAÇÃO ===
+			window.mostrarLoginTab = function(tab) {
+				document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+				if (tab === 'login') {
+					document.querySelector('.login-tab').classList.add('active');
+					document.getElementById('loginForm').style.display = 'block';
+					document.getElementById('registoForm').style.display = 'none';
+				} else {
+					document.querySelectorAll('.login-tab')[1].classList.add('active');
+					document.getElementById('loginForm').style.display = 'none';
+					document.getElementById('registoForm').style.display = 'block';
+				}
+			}
+
+			window.realizarLogin = async function(event) {
+				event.preventDefault();
+				const email = document.getElementById('loginEmail').value;
+				const password = document.getElementById('loginPassword').value;
+				
+				try {
+					await signInWithEmailAndPassword(auth, email, password);
+					mostrarMensagemAuth('Login realizado com sucesso!', 'success');
+				} catch (error) {
+					mostrarMensagemAuth('Erro: ' + error.message, 'error');
+				}
+			}
+
+			window.realizarRegisto = async function(event) {
+				event.preventDefault();
+				const email = document.getElementById('registoEmail').value;
+				const password = document.getElementById('registoPassword').value;
+				const confirmPassword = document.getElementById('registoPasswordConfirm').value;
+				
+				if (password !== confirmPassword) {
+					mostrarMensagemAuth('As passwords não coincidem!', 'error');
+					return;
+				}
+				
+				try {
+					await createUserWithEmailAndPassword(auth, email, password);
+					mostrarMensagemAuth('Conta criada com sucesso!', 'success');
+				} catch (error) {
+					mostrarMensagemAuth('Erro: ' + error.message, 'error');
+				}
+			}
+
+			window.logout = async function() {
+				try {
+					await signOut(auth);
+				} catch (error) {
+					alert('Erro ao fazer logout: ' + error.message);
+				}
+			}
+
+			function mostrarMensagemAuth(mensagem, tipo) {
+				const msgElement = document.getElementById('authMessage');
+				msgElement.textContent = mensagem;
+				msgElement.className = tipo === 'success' ? 'alert alert-success' : 'alert';
+				msgElement.style.display = 'block';
+				setTimeout(() => msgElement.style.display = 'none', 3000);
+			}
+
+			// Listener do estado de autenticação
+			onAuthStateChanged(auth, (user) => {
+			if (user) {
+        utilizadorAtual = user;
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').classList.remove('app-hidden');
+        document.getElementById('userInfo').style.display = 'flex';
+        document.getElementById('userEmail').textContent = user.email;
+        document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+        inicializar();
+			} else {
+				utilizadorAtual = null;
+				document.getElementById('loginPage').style.display = 'block';
+				document.getElementById('mainApp').classList.add('app-hidden');
+				document.getElementById('userInfo').style.display = 'none';
+				}
+			});
+
+		// === FIM AUTENTICAÇÃO ===
 
         // Inicialização
         function inicializar() {
