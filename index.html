@@ -407,27 +407,52 @@
 				const email = document.getElementById('registoEmail').value;
 				const password = document.getElementById('registoPassword').value;
 				const confirmPassword = document.getElementById('registoPasswordConfirm').value;
-				
+    
 				if (password !== confirmPassword) {
 					mostrarMensagemAuth('As passwords não coincidem!', 'error');
 					return;
 				}
-				
-				try {
-					await createUserWithEmailAndPassword(auth, email, password);
-					mostrarMensagemAuth('Conta criada com sucesso!', 'success');
-				} catch (error) {
-					mostrarMensagemAuth('Erro: ' + error.message, 'error');
-				}
-			}
-
-			window.logout = async function() {
-				try {
-					await signOut(auth);
-				} catch (error) {
-					alert('Erro ao fazer logout: ' + error.message);
-				}
-			}
+    
+			try {
+        // Criar utilizador
+				const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+				const user = userCredential.user;
+        
+        // Adicionar utilizador à coleção com status pendente
+				await addDoc(collection(db, 'utilizadores'), {
+				uid: user.uid,
+				email: user.email,
+				status: 'pendente',
+				dataCriacao: new Date().toISOString(),
+				tipo: 'pendente'
+				});
+        
+        // Fazer logout imediatamente após registo
+				await signOut(auth);
+        
+        // Mostrar mensagem de sucesso
+        mostrarMensagemAuth('Registo efetuado com sucesso! A sua conta está pendente de aprovação pelo administrador. Será notificado quando puder aceder.', 'success');
+        
+        // Limpar formulário
+        document.getElementById('registoForm').reset();
+        
+        // Voltar ao tab de login após 4 segundos
+        setTimeout(() => {
+            mostrarLoginTab('login');
+        }, 4000);
+        
+    } catch (error) {
+        let mensagemErro = 'Erro no registo: ';
+        if (error.code === 'auth/email-already-in-use') {
+            mensagemErro = 'Este email já está registado!';
+        } else if (error.code === 'auth/weak-password') {
+            mensagemErro = 'A password deve ter pelo menos 6 caracteres!';
+        } else {
+            mensagemErro += error.message;
+        }
+        mostrarMensagemAuth(mensagemErro, 'error');
+    }
+}
 
 			function mostrarMensagemAuth(mensagem, tipo) {
 				const msgElement = document.getElementById('authMessage');
@@ -438,22 +463,51 @@
 			}
 
 			// Listener do estado de autenticação
-			onAuthStateChanged(auth, (user) => {
-			if (user) {
-        utilizadorAtual = user;
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        // Verificar se o utilizador está aprovado
+        const utilizadoresSnapshot = await getDocs(
+            query(collection(db, 'utilizadores'), where('uid', '==', user.uid))
+        );
+        
+        if (utilizadoresSnapshot.empty) {
+            // Utilizador não tem registo (conta antiga ou problema)
+            await signOut(auth);
+            mostrarMensagemAuth('Conta não autorizada. Entre em contacto com o administrador.', 'error');
+            return;
+        }
+        
+        const dadosUtilizador = utilizadoresSnapshot.docs[0].data();
+        
+        if (dadosUtilizador.status === 'pendente') {
+            // Conta ainda não aprovada
+            await signOut(auth);
+            mostrarMensagemAuth('A sua conta ainda está pendente de aprovação. Por favor aguarde a aprovação do administrador.', 'error');
+            return;
+        }
+        
+        if (dadosUtilizador.status === 'rejeitado') {
+            // Conta rejeitada
+            await signOut(auth);
+            mostrarMensagemAuth('A sua conta foi rejeitada. Entre em contacto com o administrador.', 'error');
+            return;
+        }
+        
+        // Utilizador aprovado - permitir acesso
+        utilizadorAtual = { ...user, ...dadosUtilizador };
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('mainApp').classList.remove('app-hidden');
         document.getElementById('userInfo').style.display = 'flex';
         document.getElementById('userEmail').textContent = user.email;
         document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
         inicializar();
-			} else {
-				utilizadorAtual = null;
-				document.getElementById('loginPage').style.display = 'block';
-				document.getElementById('mainApp').classList.add('app-hidden');
-				document.getElementById('userInfo').style.display = 'none';
-				}
-			});
+    } else {
+        utilizadorAtual = null;
+        document.getElementById('loginPage').style.display = 'block';
+        document.getElementById('mainApp').classList.add('app-hidden');
+        document.getElementById('userInfo').style.display = 'none';
+    }
+});
 
 		// === FIM AUTENTICAÇÃO ===
 
